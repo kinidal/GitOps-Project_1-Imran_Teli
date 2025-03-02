@@ -40,7 +40,7 @@ jobs:
 
         - name: Setup Terraform with specified version on the runner  
           uses: hashicorp/setup-terraform@v2     # Installing terraform in the ubuntu-latest vm
-          with
+          with:
            terraform_version: 1.6.3           # Either we can mention the speciifc version, here latest will be taken
 
         - name: Terraform init step/command run  # Executing terraform init command
