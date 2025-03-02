@@ -21,7 +21,7 @@ env:
   AWS_REGION: us-east-1
   EKS_CLUSTER: gitops-project1
 
-  jobs:
+jobs:
     terraforn:
       name: "Appy terraform code changes"      # So basically what happens is when the workflow got trigerred,
       runs-on: ubuntu-latest                   # The github creates this ubuntu-latest vm and run the files in ./terraform
