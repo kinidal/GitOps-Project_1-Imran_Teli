@@ -1,0 +1,61 @@
+name: "gitops-project1"
+on:     #We are defining when the github workflow starts, below we are using two conditions 1.push and paths. 
+  push:         #when there is a commit and push happens in main/stage branches plus if the file belongs to 
+    branches:     #the following path then the github flow will tigger automatically
+      - main
+      - stage
+    paths:
+      - terraforn/**
+  pull_request:   #Pull request is defined commonly in the main branches where not everybody has access to merge code.
+    branches:         #So if any commit and push happens in main or stage it get tested and if its successful, 
+      - main             #then a pull request from the change partee is created, the owner of main branch.
+    paths:                 # the owner has to approve then only the stage branch change will gets merge into main branch.
+      - terraform/**
+
+env:
+  #Credentials for deployment to AWS - These credentials stored in Github repositry settings -> secrets and variables
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  # S3 bucket fot the terraform state
+  BUCKET_TF_STATE: ${{ secrets.BUCKET_TF_STATE }}
+  AWS_REGION: us-east-1
+  EKS_CLUSTER: gitops-project1
+
+  jobs:
+    terraforn:
+      name: "Appy terraform code changes"      # So basically what happens is when the workflow got trigerred,
+      runs-on: ubuntu-latest                   # The github creates this ubuntu-latest vm and run the files in ./terraform
+      defaults:                                # Location using bash and runs the steps in the 'Steps' below
+        run:
+          shell: bash
+          working-directory: ./terraform
+
+      steps:
+        - name: Checkout the source code        
+          uses: actions/checkout@v4             # Checkout the source code from the ./terraform path
+
+        - name: Setup Terraform with specified version on the runner  
+        - uses: hasicorp/setup-terraform@v2     # Installing terraform in the ubuntu-latest vm
+          #with
+           # terraform_version: 1.6.3           # Either we can mention the speciifc version, here latest will be taken
+
+        - name: Terraform init step/command run  # Executing terraform init command
+          id: init
+          run: terraform init -backend-config="bucket=$BUCKET_TF_STATE" 
+                                                 # First the terraform state file has to find, here its in S3 bucket
+        - name: Terraform file format checking
+          id: fmt                                # Checking the format of the terraform files 
+          run: terraform fmt -check
+
+        - name: Terraform Validate step
+          id: validate                        # Validating the format, varibles etc in the .tf terraform files
+          run: terraform validate             # If any issues are found the workflow stops automatically
+
+        - name: Terraform plan
+          id: plan
+          run: terraform plan -no-color -input=false -out planfile
+          continue-on-error: true
+
+        - name: Terraform plan status
+          if : steps.plan.outcome == 'failure'  # This is to make sure if any issues in the above plan step, the code exits
+          run: exit 1                           # And the shell (bash) exits there by killing the container too.
