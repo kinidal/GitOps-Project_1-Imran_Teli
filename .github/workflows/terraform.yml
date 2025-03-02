@@ -69,3 +69,30 @@ jobs:
           # resources (cluster, VPC, VM etc) in AWS account linked. Since this is a staging branch here we are only testing it
           # Normally in real companies, thre will be a staging environment where we can create these resources in real and test
           # everything there before merging to main branch
+
+        - name: Terraform apply
+          id: apple
+          if: guthub.ref == 'refs/heads/main' && github.event_name == 'push'
+          run: terraform apply -auto-approve -input=false -parallelism=1 planfile
+
+          # This means, when there is a push command happens in Main branch of this git reposiory then
+          # Terraform apply command will execute with auto approve
+
+        - name: Configure AWS credetials
+          uses: aws-actions/configure-aws-credentials@v1
+          with:
+            aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+            aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+            aws-region: ${{ env.AWS_REGION }}
+
+        - name: Get Kube config file
+          id: getconfig
+          if: steps.apple.outcome == 'success'
+          run: aws eks update-kubeconfig --region ${{ env.AWS_REGION }} --name ${{ env.EKS_CLUSTER }}
+          # The above command provides kubeconfig file with the parameters provided and apply this command in AWS cli
+          # using the credentials provided above
+          # And this kubeconfig is used in the below command of kubectl apply
+
+        - name: Install ingress controller
+          if: steps.apple.outcome == 'success' && steps.getonfig.outcome == 'success'
+          run: kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.1.3/deploy/static/provider/aws/deploy.yaml
