@@ -1,3 +1,7 @@
+# This file is a workflow file, mean this when saved and commit then push it will automatically create a workflow in 
+# Github repostory (stage branch)
+# Every file with extension .yml will create a new workflow in the github repo 
+
 name: "gitops-project1"
 on:     #We are defining when the github workflow starts, below we are using two conditions 1.push and paths. 
   push:         #when there is a commit and push happens in main/stage branches plus if the file belongs to 
@@ -59,3 +63,9 @@ jobs:
         - name: Terraform plan status
           if : steps.plan.outcome == 'failure'  # This is to make sure if any issues in the above plan step, the code exits
           run: exit 1                           # And the shell (bash) exits there by killing the container too.
+
+
+          # We are stopping the terraform here with Plan only without going to terraform apply which actually creates these
+          # resources (cluster, VPC, VM etc) in AWS account linked. Since this is a staging branch here we are only testing it
+          # Normally in real companies, thre will be a staging environment where we can create these resources in real and test
+          # everything there before merging to main branch
