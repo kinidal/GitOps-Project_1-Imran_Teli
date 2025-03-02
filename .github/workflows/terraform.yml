@@ -4,12 +4,12 @@
 
 name: "gitops-project1"
 on:     #We are defining when the github workflow starts, below we are using two conditions 1.push and paths. 
-  push:         #when there is a commit and push happens in main/stage branches plus if the file belongs to 
-    branches:     #the following path then the github flow will tigger automatically
+  push:         #when there is a commit and push happens in main/stage branches of the file belongs to 
+    branches:     #the following path (./terraform) then the github flow will tigger automatically
       - main
       - stage
     paths:
-      - terraforn/**
+      - terraform/**
   pull_request:   #Pull request is defined commonly in the main branches where not everybody has access to merge code.
     branches:         #So if any commit and push happens in main or stage it get tested and if its successful, 
       - main             #then a pull request from the change partee is created, the owner of main branch.
@@ -26,7 +26,7 @@ env:
   EKS_CLUSTER: gitops-project1
 
 jobs:
-    terraforn:
+    terraform:
       name: "Appy terraform code changes"      # So basically what happens is when the workflow got trigerred,
       runs-on: ubuntu-latest                   # The github creates this ubuntu-latest vm and run the files in ./terraform
       defaults:                                # Location using bash and runs the steps in the 'Steps' below
