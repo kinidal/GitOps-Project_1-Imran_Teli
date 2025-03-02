@@ -39,7 +39,7 @@ jobs:
           uses: actions/checkout@v4             # Checkout the source code from the ./terraform path
 
         - name: Setup Terraform with specified version on the runner  
-          uses: hasicorp/setup-terraform@v2     # Installing terraform in the ubuntu-latest vm
+          uses: hashicorp/setup-terraform@v2     # Installing terraform in the ubuntu-latest vm
           #with
            # terraform_version: 1.6.3           # Either we can mention the speciifc version, here latest will be taken
 
